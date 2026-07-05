@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Daily Fuel</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Daily Fuel">
+<meta name="theme-color" content="#0d0f0d">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #0d0f0d;
+    --card: #171c17;
+    --card-done: #1a2418;
+    --line: #262e26;
+    --lime: #b8ff3d;
+    --lime-dim: #7fa82a;
+    --protein: #ff7a45;
+    --fat: #ffd84d;
+    --carb: #4dd0ff;
+    --txt: #e8ede8;
+    --txt-dim: #7f887f;
+    --txt-faint: #4d544d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--txt);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  }
+
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 18px; }
+
+  header {
+    padding: calc(32px + env(safe-area-inset-top)) 0 20px;
+    position: sticky;
+    top: 0;
+    background: linear-gradient(180deg, var(--bg) 70%, transparent);
+    z-index: 20;
+  }
+
+  .kicker {
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--lime-dim);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+
+  h1 {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+  }
+  h1 .accent { color: var(--lime); }
+
+  .datenav { display: flex; align-items: center; gap: 4px; }
+  .datenav button {
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--txt-dim);
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.15s;
+  }
+  .datenav button:active { background: var(--line); }
+  .datelabel {
+    font-size: 12px;
+    color: var(--txt-dim);
+    min-width: 88px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .datelabel .day { color: var(--txt); font-size: 13px; }
+
+  .dash {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 20px 20px 22px;
+    margin-bottom: 8px;
+  }
+
+  .cal-big { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .cal-big .num {
+    font-size: 44px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--lime);
+    line-height: 1;
+  }
+  .cal-big .goal { font-size: 15px; color: var(--txt-dim); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cal-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--txt-faint);
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .calbar { height: 7px; background: #0a0d0a; border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+  .calbar > span {
+    display: block; height: 100%;
+    background: linear-gradient(90deg, var(--lime-dim), var(--lime));
+    border-radius: 4px; width: 0;
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .macro .mtop { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 7px; }
+  .macro .mname { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; color: var(--txt-dim); }
+  .macro .mval { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--txt); }
+  .macro .mval .mgoal { color: var(--txt-faint); font-weight: 600; }
+  .macro .mbar { height: 5px; background: #0a0d0a; border-radius: 3px; overflow: hidden; }
+  .macro .mbar > span { display: block; height: 100%; width: 0; border-radius: 3px; transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+  .macro.p .mbar > span { background: var(--protein); }
+  .macro.f .mbar > span { background: var(--fat); }
+  .macro.c .mbar > span { background: var(--carb); }
+  .macro.p .mname { color: var(--protein); }
+  .macro.f .mname { color: var(--fat); }
+  .macro.c .mname { color: var(--carb); }
+
+  .meals { margin-top: 22px; display: flex; flex-direction: column; gap: 12px; }
+
+  .meal {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .meal.done { background: var(--card-done); border-color: #2f4a26; }
+
+  .meal-head { display: flex; align-items: center; gap: 14px; padding: 16px 18px; cursor: pointer; user-select: none; }
+
+  .check {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    border: 2px solid var(--line);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+  }
+  .meal.done .check { background: var(--lime); border-color: var(--lime); }
+  .check svg { width: 15px; height: 15px; stroke: var(--bg); stroke-width: 3.5; fill: none; opacity: 0; transform: scale(0.4); transition: 0.2s; }
+  .meal.done .check svg { opacity: 1; transform: scale(1); }
+
+  .meal-info { flex: 1; min-width: 0; }
+  .meal-slot { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--txt-faint); font-weight: 700; margin-bottom: 3px; }
+  .meal-name { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; transition: 0.2s; }
+  .meal.done .meal-name { color: var(--txt-dim); text-decoration: line-through; text-decoration-color: var(--lime-dim); }
+  .meal-macros { font-size: 12px; color: var(--txt-faint); font-variant-numeric: tabular-nums; margin-top: 3px; font-weight: 500; }
+  .meal-macros b { color: var(--txt-dim); font-weight: 700; }
+
+  .expand { flex-shrink: 0; color: var(--txt-faint); font-size: 13px; transition: transform 0.25s; padding: 4px; }
+  .meal.open .expand { transform: rotate(90deg); }
+
+  .meal-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+  .meal.open .meal-body { max-height: 640px; }
+
+  .body-inner { padding: 2px 18px 16px; }
+
+  .opt-tabs { display: flex; gap: 6px; padding: 6px 0 2px 58px; flex-wrap: wrap; }
+  .opt-tab {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--txt-dim);
+    background: #0f130f;
+    border: 1px solid var(--line);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .opt-tab:active { transform: scale(0.96); }
+  .opt-tab.active { background: var(--lime); border-color: var(--lime); color: var(--bg); font-weight: 700; }
+
+  .ing { padding-left: 58px; }
+  .ing ul { list-style: none; padding: 10px 0 2px; border-top: 1px solid var(--line); }
+  .ing li { font-size: 13.5px; color: var(--txt-dim); padding: 5px 0; display: flex; justify-content: space-between; gap: 12px; }
+  .ing li .amt { color: var(--txt-faint); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+  .foot { margin-top: 26px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+  .streak { font-size: 12.5px; color: var(--txt-dim); font-weight: 600; }
+  .streak b { color: var(--lime); font-weight: 800; font-size: 15px; }
+  .reset {
+    background: transparent; border: 1px solid var(--line); color: var(--txt-faint);
+    font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 9px;
+    cursor: pointer; transition: 0.15s;
+  }
+  .reset:active { background: var(--card); color: var(--txt-dim); }
+
+  .done-banner {
+    text-align: center; padding: 0 18px; margin-top: 20px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(184,255,61,0.12), rgba(184,255,61,0.04));
+    border: 1px solid #2f4a26; font-size: 14px; font-weight: 700; color: var(--lime);
+    opacity: 0; max-height: 0; overflow: hidden; transition: 0.4s;
+  }
+  .done-banner.show { opacity: 1; max-height: 80px; padding: 18px; }
+
+  .hint { font-size: 11.5px; color: var(--txt-faint); padding: 2px 0 10px 58px; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Muskelaufbau · Lean Bulk</div>
+    <div class="title-row">
+      <h1>Daily <span class="accent">Fuel</span></h1>
+      <div class="datenav">
+        <button id="prev">‹</button>
+        <div class="datelabel"><span class="day" id="dayName">Heute</span><br><span id="dateStr"></span></div>
+        <button id="next">›</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="dash">
+    <div class="cal-big">
+      <span class="num" id="calNum">0</span>
+      <span class="goal" id="calGoal">/ 3622 kcal</span>
+    </div>
+    <div class="cal-label">Kalorien</div>
+    <div class="calbar"><span id="calBar"></span></div>
+
+    <div class="macros">
+      <div class="macro p">
+        <div class="mtop"><span class="mname">Protein</span><span class="mval"><span id="pNum">0</span><span class="mgoal">/197g</span></span></div>
+        <div class="mbar"><span id="pBar"></span></div>
+      </div>
+      <div class="macro f">
+        <div class="mtop"><span class="mname">Fett</span><span class="mval"><span id="fNum">0</span><span class="mgoal">/120g</span></span></div>
+        <div class="mbar"><span id="fBar"></span></div>
+      </div>
+      <div class="macro c">
+        <div class="mtop"><span class="mname">Carbs</span><span class="mval"><span id="cNum">0</span><span class="mgoal">/436g</span></span></div>
+        <div class="mbar"><span id="cBar"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="done-banner" id="banner">✓ Alles abgehakt — starker Tag. Weiter so!</div>
+
+  <div class="meals" id="meals"></div>
+
+  <div class="foot">
+    <div class="streak">Serie: <b id="streakNum">0</b> Tage komplett</div>
+    <button class="reset" id="resetBtn">Tag zurücksetzen</button>
+  </div>
+</div>
+
+<script>
+const GOALS = { kcal: 3622, p: 197, f: 120, c: 436 };
+
+const SLOTS = [
+  {
+    id: 'breakfast', slot: 'Frühstück',
+    options: [
+      { name: 'Haferflocken-Whey-Bowl', kcal:900, p:65, f:30, c:105,
+        ing:[['Haferflocken','125 g'],['Wasser','400 ml'],['Whey Protein','60 g'],['Erdnussbutter','30 g'],['Honig','20 g'],['Banane','1 (~120 g)']] },
+      { name: 'Rührei & Vollkorntoast', kcal:900, p:62, f:38, c:88,
+        ing:[['Eier','4 ganze'],['Eiweiß','3'],['Vollkorntoast','3 Scheiben'],['Avocado','1/2'],['Magerquark','150 g'],['Banane','1']] },
+      { name: 'Skyr-Beeren-Porridge', kcal:900, p:66, f:26, c:112,
+        ing:[['Haferflocken','110 g'],['Skyr','200 g'],['Whey Protein','30 g'],['Beeren','150 g'],['Mandeln','20 g'],['Honig','15 g']] },
+    ]
+  },
+  {
+    id: 'lunch', slot: 'Mittagessen',
+    options: [
+      { name: 'Hähnchen, Reis & Gemüse', kcal:950, p:60, f:25, c:145,
+        ing:[['Reis (roh)','200 g'],['Hähnchenbrust','200 g'],['Gemüse (Brokkoli, Paprika)','300 g'],['Olivenöl','15 g']] },
+      { name: 'Rindhack-Bowl mit Reis', kcal:950, p:58, f:32, c:128,
+        ing:[['Reis (roh)','180 g'],['Rinderhack 5%','200 g'],['Kidneybohnen','120 g'],['Paprika & Mais','200 g'],['Olivenöl','10 g']] },
+      { name: 'Lachs mit Kartoffeln', kcal:950, p:55, f:35, c:120,
+        ing:[['Kartoffeln','350 g'],['Lachsfilet','200 g'],['Brokkoli','250 g'],['Olivenöl','10 g']] },
+      { name: 'Pasta mit Pute & Tomate', kcal:950, p:62, f:22, c:150,
+        ing:[['Vollkornpasta (roh)','130 g'],['Putenbrust','200 g'],['Tomatensauce','200 g'],['Parmesan','20 g']] },
+    ]
+  },
+  {
+    id: 'snack', slot: 'Snack · Pre/Post Workout',
+    options: [
+      { name: 'Quark-Hafer-Snack', kcal:700, p:35, f:30, c:75,
+        ing:[['Magerquark','100 g'],['Haferflocken','60 g'],['Erdnussbutter','30 g'],['Banane','1 (~120 g)']] },
+      { name: 'Shake & Reiswaffeln', kcal:700, p:42, f:22, c:82,
+        ing:[['Whey Protein','40 g'],['Milch 1,5%','300 ml'],['Reiswaffeln','5 Stück'],['Erdnussbutter','25 g'],['Banane','1']] },
+      { name: 'Trail-Mix & Skyr', kcal:700, p:33, f:34, c:70,
+        ing:[['Skyr','200 g'],['Studentenfutter','50 g'],['Haferflocken','40 g'],['Honig','15 g']] },
+    ]
+  },
+  {
+    id: 'dinner', slot: 'Abendessen',
+    options: [
+      { name: 'Steak/Pute, Kartoffeln, Gemüse', kcal:850, p:50, f:30, c:90,
+        ing:[['Kartoffeln','250 g'],['Rind / Lachs / Pute','200 g'],['Gemüse','300 g'],['Olivenöl','15 g']] },
+      { name: 'Omelett mit Käse & Brot', kcal:850, p:52, f:40, c:65,
+        ing:[['Eier','4 ganze'],['Eiweiß','2'],['Gouda','40 g'],['Vollkornbrot','2 Scheiben'],['Salat & Gemüse','200 g'],['Olivenöl','10 g']] },
+      { name: 'Tofu-Gemüse-Pfanne mit Reis', kcal:850, p:45, f:28, c:100,
+        ing:[['Reis (roh)','130 g'],['Räuchertofu','200 g'],['Edamame','100 g'],['Wok-Gemüse','300 g'],['Sesamöl','12 g']] },
+    ]
+  },
+  {
+    id: 'night', slot: 'Vor dem Schlafen',
+    options: [
+      { name: 'Magerquark mit Beeren', kcal:180, p:30, f:2, c:15,
+        ing:[['Magerquark','250 g'],['Beeren','nach Wahl']] },
+      { name: 'Casein-Shake', kcal:180, p:32, f:3, c:8,
+        ing:[['Casein / Whey','35 g'],['Wasser od. Milch','250 ml'],['Zimt','1 Prise']] },
+      { name: 'Skyr mit Nüssen', kcal:180, p:24, f:8, c:9,
+        ing:[['Skyr','180 g'],['Walnüsse','12 g'],['Beeren','50 g']] },
+    ]
+  },
+];
+
+// ---- persistent storage ----
+const STORAGE_KEY = 'dailyfuel_v1';
+let store = loadStore();
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    // rehydrate: checked arrays -> Sets
+    const out = {};
+    for (const k in parsed) {
+      out[k] = { checked: new Set(parsed[k].checked || []), choice: parsed[k].choice || {} };
+    }
+    return out;
+  } catch (e) { return {}; }
+}
+
+function saveStore() {
+  try {
+    const plain = {};
+    for (const k in store) {
+      plain[k] = { checked: Array.from(store[k].checked), choice: store[k].choice };
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(plain));
+  } catch (e) { /* storage full or blocked — app still works for the session */ }
+}
+
+// ---- date + state ----
+let viewDate = new Date();
+
+function key(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function getDay(d) {
+  const k = key(d);
+  if (!store[k]) store[k] = { checked: new Set(), choice: {} };
+  return store[k];
+}
+function choiceFor(day, slotId) { return day.choice[slotId] || 0; }
+function isToday(d) { return key(d) === key(new Date()); }
+
+const mealsEl = document.getElementById('meals');
+
+function buildMeals() {
+  mealsEl.innerHTML = '';
+  SLOTS.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'meal';
+    el.dataset.id = s.id;
+    el.innerHTML = `
+      <div class="meal-head">
+        <div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="meal-info">
+          <div class="meal-slot">${s.slot}</div>
+          <div class="meal-name js-name"></div>
+          <div class="meal-macros js-macros"></div>
+        </div>
+        <div class="expand">▸</div>
+      </div>
+      <div class="meal-body"><div class="body-inner">
+        ${s.options.length>1?'<div class="hint">Tippe eine Variante an zum Wechseln:</div>':''}
+        <div class="opt-tabs js-tabs"></div>
+        <div class="ing js-ing"></div>
+      </div></div>
+    `;
+
+    const check = el.querySelector('.check');
+    const expand = el.querySelector('.expand');
+    const head = el.querySelector('.meal-head');
+    check.addEventListener('click', (e)=>{ e.stopPropagation(); toggleMeal(s.id); });
+    head.addEventListener('click', ()=> toggleMeal(s.id));
+    expand.addEventListener('click', (e)=>{ e.stopPropagation(); el.classList.toggle('open'); });
+
+    const tabsEl = el.querySelector('.js-tabs');
+    if (s.options.length > 1) {
+      s.options.forEach((o,i)=>{
+        const t = document.createElement('span');
+        t.className = 'opt-tab';
+        t.dataset.i = i;
+        t.textContent = o.name;
+        t.addEventListener('click',(e)=>{ e.stopPropagation(); setChoice(s.id, i); });
+        tabsEl.appendChild(t);
+      });
+    } else { tabsEl.remove(); el.querySelector('.hint')?.remove(); }
+
+    mealsEl.appendChild(el);
+  });
+}
+
+function setChoice(slotId, i) {
+  const day = getDay(viewDate);
+  day.choice[slotId] = i;
+  saveStore();
+  render();
+  mealsEl.querySelector(`[data-id="${slotId}"]`).classList.add('open');
+}
+
+function toggleMeal(id) {
+  const day = getDay(viewDate);
+  if (day.checked.has(id)) day.checked.delete(id); else day.checked.add(id);
+  saveStore();
+  render();
+}
+
+function animateBar(el, pct) { requestAnimationFrame(()=> el.style.width = Math.min(pct,100) + '%'); }
+
+function render() {
+  const day = getDay(viewDate);
+  let t = { kcal:0, p:0, f:0, c:0 };
+
+  SLOTS.forEach(s => {
+    const el = mealsEl.querySelector(`[data-id="${s.id}"]`);
+    const ci = choiceFor(day, s.id);
+    const o = s.options[ci];
+    const done = day.checked.has(s.id);
+    el.classList.toggle('done', done);
+
+    el.querySelector('.js-name').textContent = o.name;
+    el.querySelector('.js-macros').innerHTML = `<b>${o.kcal}</b> kcal &nbsp;·&nbsp; ${o.p}P &nbsp; ${o.f}F &nbsp; ${o.c}C`;
+    el.querySelector('.js-ing').innerHTML = `<ul>${o.ing.map(i=>`<li><span>${i[0]}</span><span class="amt">${i[1]}</span></li>`).join('')}</ul>`;
+    el.querySelectorAll('.opt-tab').forEach(tab=>{
+      tab.classList.toggle('active', Number(tab.dataset.i) === ci);
+    });
+
+    if (done) { t.kcal+=o.kcal; t.p+=o.p; t.f+=o.f; t.c+=o.c; }
+  });
+
+  document.getElementById('calNum').textContent = t.kcal;
+  document.getElementById('pNum').textContent = t.p;
+  document.getElementById('fNum').textContent = t.f;
+  document.getElementById('cNum').textContent = t.c;
+
+  animateBar(document.getElementById('calBar'), t.kcal/GOALS.kcal*100);
+  animateBar(document.getElementById('pBar'), t.p/GOALS.p*100);
+  animateBar(document.getElementById('fBar'), t.f/GOALS.f*100);
+  animateBar(document.getElementById('cBar'), t.c/GOALS.c*100);
+
+  const allDone = SLOTS.every(s => day.checked.has(s.id));
+  document.getElementById('banner').classList.toggle('show', allDone);
+
+  const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  document.getElementById('dayName').textContent = isToday(viewDate) ? 'Heute' : days[viewDate.getDay()];
+  document.getElementById('dateStr').textContent = String(viewDate.getDate()).padStart(2,'0') + '.' + String(viewDate.getMonth()+1).padStart(2,'0') + '.';
+  document.getElementById('streakNum').textContent = calcStreak();
+  document.getElementById('next').style.opacity = isToday(viewDate) ? 0.3 : 1;
+}
+
+function calcStreak() {
+  let n = 0; let d = new Date();
+  while (true) {
+    const s = store[key(d)];
+    if (s && SLOTS.every(sl => s.checked.has(sl.id))) { n++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return n;
+}
+
+document.getElementById('prev').addEventListener('click', ()=>{ viewDate.setDate(viewDate.getDate()-1); collapseAll(); render(); });
+document.getElementById('next').addEventListener('click', ()=>{ if(!isToday(viewDate)){ viewDate.setDate(viewDate.getDate()+1); collapseAll(); render(); } });
+document.getElementById('resetBtn').addEventListener('click', ()=>{ getDay(viewDate).checked.clear(); saveStore(); render(); });
+function collapseAll(){ mealsEl.querySelectorAll('.meal').forEach(el=>el.classList.remove('open')); }
+
+buildMeals();
+render();
+</script>
+</body>
+</html>
