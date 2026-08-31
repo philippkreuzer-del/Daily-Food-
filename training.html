@@ -5,25 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Calisthenics Split</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Calisthenics">
-<meta name="theme-color" content="#0d0f0d">
+<meta name="theme-color" content="#F5EFE6">
 <link rel="manifest" href="manifest-training.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-training-192.png">
 <style>
   :root {
-    --bg: #0d0f0d;
-    --card: #171c17;
-    --card-done: #1a2418;
-    --line: #262e26;
-    --lime: #b8ff3d;
-    --lime-dim: #7fa82a;
-    --skill: #4dd0ff;
-    --power: #ff7a45;
-    --accessory: #ffd84d;
-    --txt: #e8ede8;
-    --txt-dim: #7f887f;
-    --txt-faint: #4d544d;
+    --bg: #F5EFE6;
+    --card: #EDE4D3;
+    --card-done: #E6D9C2;
+    --line: #DBCcB4;
+    --lime: #A67B5B;
+    --lime-dim: #8B6F52;
+    --skill: #7A9471;
+    --power: #C08552;
+    --accessory: #D4A24E;
+    --txt: #4A3B2E;
+    --txt-dim: #8B7355;
+    --txt-faint: #B0A088;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
@@ -69,7 +69,7 @@
   .dayprog-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
   .dayprog-focus { font-size: 11px; color: var(--txt-dim); font-weight: 600; }
   .dayprog-count { font-size: 13px; font-weight: 700; color: var(--lime); font-variant-numeric: tabular-nums; }
-  .pbar { height: 6px; background: #0a0d0a; border-radius: 4px; overflow: hidden; }
+  .pbar { height: 6px; background: #DBCcB4; border-radius: 4px; overflow: hidden; }
   .pbar > span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--lime-dim), var(--lime)); border-radius: 4px; transition: width 0.5s cubic-bezier(0.22,1,0.36,1); }
 
   .section-label {
@@ -82,7 +82,7 @@
   .section-label.accessory { color: var(--accessory); } .section-label.accessory .dot { background: var(--accessory); }
 
   .ex { background: var(--card); border: 1px solid var(--line); border-radius: 15px; margin-bottom: 10px; overflow: hidden; transition: 0.2s; }
-  .ex.done { background: var(--card-done); border-color: #2f4a26; }
+  .ex.done { background: var(--card-done); border-color: #C4A47C; }
   .ex-head { display: flex; align-items: center; gap: 13px; padding: 15px 16px; cursor: pointer; user-select: none; }
   .check { flex-shrink: 0; width: 25px; height: 25px; border-radius: 8px; border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
   .ex.done .check { background: var(--lime); border-color: var(--lime); }
@@ -105,7 +105,7 @@
   .ex-note .tag { display: inline-block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; color: var(--lime-dim); margin-bottom: 4px; }
 
   /* weight logger */
-  .wlog { margin-top: 14px; background: #0f130f; border: 1px solid var(--line); border-radius: 11px; padding: 12px 13px; }
+  .wlog { margin-top: 14px; background: #E3D5C0; border: 1px solid var(--line); border-radius: 11px; padding: 12px 13px; }
   .wlog-row { display: flex; align-items: center; gap: 10px; }
   .wlog-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--txt-dim); flex: 1; }
   .wlog-input { display: flex; align-items: center; gap: 6px; }
@@ -132,8 +132,8 @@
 
   .done-banner {
     text-align: center; padding: 0 18px; margin-top: 16px; border-radius: 14px;
-    background: linear-gradient(135deg, rgba(184,255,61,0.12), rgba(184,255,61,0.04));
-    border: 1px solid #2f4a26; font-size: 14px; font-weight: 700; color: var(--lime);
+    background: linear-gradient(135deg, rgba(166,123,91,0.16), rgba(166,123,91,0.05));
+    border: 1px solid #C4A47C; font-size: 14px; font-weight: 700; color: var(--lime);
     opacity: 0; max-height: 0; overflow: hidden; transition: 0.4s;
   }
   .done-banner.show { opacity: 1; max-height: 80px; padding: 16px; }
