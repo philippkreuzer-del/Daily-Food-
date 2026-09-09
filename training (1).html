@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calisthenics Split</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Calisthenics">
+<meta name="theme-color" content="#F5EFE6">
+<link rel="manifest" href="manifest-training.json">
+<link rel="apple-touch-icon" href="icon-training-192.png">
+<style>
+  :root {
+    --bg: #F5EFE6;
+    --card: #EDE4D3;
+    --card-done: #E6D9C2;
+    --line: #DBCcB4;
+    --lime: #A67B5B;
+    --lime-dim: #8B6F52;
+    --skill: #7A9471;
+    --power: #C08552;
+    --accessory: #D4A24E;
+    --txt: #4A3B2E;
+    --txt-dim: #8B7355;
+    --txt-faint: #B0A088;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg); color: var(--txt);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh; padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 18px; }
+
+  header {
+    padding: calc(30px + env(safe-area-inset-top)) 0 14px;
+    position: sticky; top: 0;
+    background: linear-gradient(180deg, var(--bg) 78%, transparent); z-index: 20;
+  }
+  .kicker { font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--lime-dim); font-weight: 700; margin-bottom: 6px; }
+  h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; line-height: 0.95; }
+  h1 .accent { color: var(--lime); }
+
+  .days { display: flex; gap: 7px; margin-top: 18px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .days::-webkit-scrollbar { display: none; }
+  .day-tab {
+    flex-shrink: 0; padding: 10px 15px; border-radius: 12px;
+    background: var(--card); border: 1px solid var(--line);
+    cursor: pointer; transition: 0.15s; text-align: left; min-width: 82px;
+  }
+  .day-tab .dt-day { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--txt-faint); font-weight: 700; }
+  .day-tab .dt-name { font-size: 14px; font-weight: 700; color: var(--txt-dim); margin-top: 2px; letter-spacing: -0.01em; }
+  .day-tab.active { background: var(--lime); border-color: var(--lime); }
+  .day-tab.active .dt-day { color: rgba(13,15,13,0.6); }
+  .day-tab.active .dt-name { color: var(--bg); }
+  .day-tab .dt-check { font-size: 10px; color: var(--lime-dim); font-weight: 700; margin-top: 3px; }
+  .day-tab.active .dt-check { color: rgba(13,15,13,0.7); }
+
+  /* Week selector */
+  .weekbar { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .weekbar button { background: transparent; border: none; color: var(--txt-dim); width: 34px; height: 30px; border-radius: 8px; font-size: 18px; cursor: pointer; }
+  .weekbar button:active { background: var(--line); }
+  .weekbar .wlabel { font-size: 12.5px; font-weight: 700; color: var(--txt); font-variant-numeric: tabular-nums; }
+  .weekbar .wsub { font-size: 10.5px; color: var(--txt-faint); font-weight: 600; }
+
+  .dayprog { margin-top: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 15px 17px; }
+  .dayprog-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .dayprog-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+  .dayprog-focus { font-size: 11px; color: var(--txt-dim); font-weight: 600; }
+  .dayprog-count { font-size: 13px; font-weight: 700; color: var(--lime); font-variant-numeric: tabular-nums; }
+  .pbar { height: 6px; background: #DBCcB4; border-radius: 4px; overflow: hidden; }
+  .pbar > span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--lime-dim), var(--lime)); border-radius: 4px; transition: width 0.5s cubic-bezier(0.22,1,0.36,1); }
+
+  .section-label {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 800;
+    margin: 24px 0 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-label .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .section-label.skill { color: var(--skill); } .section-label.skill .dot { background: var(--skill); }
+  .section-label.power { color: var(--power); } .section-label.power .dot { background: var(--power); }
+  .section-label.accessory { color: var(--accessory); } .section-label.accessory .dot { background: var(--accessory); }
+
+  .ex { background: var(--card); border: 1px solid var(--line); border-radius: 15px; margin-bottom: 10px; overflow: hidden; transition: 0.2s; }
+  .ex.done { background: var(--card-done); border-color: #C4A47C; }
+  .ex-head { display: flex; align-items: center; gap: 13px; padding: 15px 16px; cursor: pointer; user-select: none; }
+  .check { flex-shrink: 0; width: 25px; height: 25px; border-radius: 8px; border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+  .ex.done .check { background: var(--lime); border-color: var(--lime); }
+  .check svg { width: 14px; height: 14px; stroke: var(--bg); stroke-width: 3.5; fill: none; opacity: 0; transform: scale(0.4); transition: 0.2s; }
+  .ex.done .check svg { opacity: 1; transform: scale(1); }
+  .ex-info { flex: 1; min-width: 0; }
+  .ex-name { font-size: 15.5px; font-weight: 700; letter-spacing: -0.01em; transition: 0.2s; }
+  .ex.done .ex-name { color: var(--txt-dim); text-decoration: line-through; text-decoration-color: var(--lime-dim); }
+  .ex-scheme { font-size: 12.5px; color: var(--txt-faint); margin-top: 2px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ex-scheme b { color: var(--txt-dim); }
+  .ex-wt { flex-shrink: 0; font-size: 12px; font-weight: 700; color: var(--power); font-variant-numeric: tabular-nums; margin-left: 6px; text-align: right; }
+  .ex-wt .up { color: var(--lime); }
+  .ex-wt .none { color: var(--txt-faint); font-weight: 600; }
+  .ex-expand { flex-shrink: 0; color: var(--txt-faint); font-size: 12px; transition: transform 0.25s; padding: 4px; }
+  .ex.open .ex-expand { transform: rotate(90deg); }
+  .ex-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+  .ex.open .ex-body { max-height: 480px; }
+  .ex-inner { padding: 11px 16px 15px 54px; border-top: 1px solid var(--line); }
+  .ex-note { font-size: 13px; line-height: 1.5; color: var(--txt-dim); }
+  .ex-note .tag { display: inline-block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; color: var(--lime-dim); margin-bottom: 4px; }
+
+  /* weight logger */
+  .wlog { margin-top: 14px; background: #E3D5C0; border: 1px solid var(--line); border-radius: 11px; padding: 12px 13px; }
+  .wlog-row { display: flex; align-items: center; gap: 10px; }
+  .wlog-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--txt-dim); flex: 1; }
+  .wlog-input { display: flex; align-items: center; gap: 6px; }
+  .wlog-input button { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--lime); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .wlog-input button:active { background: var(--line); }
+  .wlog-input input { width: 62px; height: 32px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--txt); text-align: center; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+  .wlog-input input::-webkit-outer-spin-button, .wlog-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .wlog-unit { font-size: 12px; color: var(--txt-faint); font-weight: 600; }
+  .wlog-hist { margin-top: 11px; font-size: 11.5px; color: var(--txt-faint); font-weight: 500; line-height: 1.7; }
+  .wlog-hist .hrow { display: flex; justify-content: space-between; }
+  .wlog-hist .hrow.cur { color: var(--lime); font-weight: 700; }
+  .wlog-hist .hrow .hw { font-variant-numeric: tabular-nums; }
+  .wlog-delta { font-size: 11px; font-weight: 700; margin-top: 8px; }
+  .wlog-delta.up { color: var(--lime); }
+  .wlog-delta.same { color: var(--txt-faint); }
+  .wlog-delta.down { color: var(--power); }
+
+  .rest-note { font-size: 11.5px; color: var(--txt-faint); margin: 2px 0 0; padding-left: 2px; font-weight: 500; }
+  .foot { margin-top: 24px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+  .reset { background: transparent; border: 1px solid var(--line); color: var(--txt-faint); font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 9px; cursor: pointer; }
+  .reset:active { background: var(--card); color: var(--txt-dim); }
+  .streak { font-size: 12.5px; color: var(--txt-dim); font-weight: 600; }
+  .streak b { color: var(--lime); font-weight: 800; font-size: 15px; }
+
+  .done-banner {
+    text-align: center; padding: 0 18px; margin-top: 16px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(166,123,91,0.16), rgba(166,123,91,0.05));
+    border: 1px solid #C4A47C; font-size: 14px; font-weight: 700; color: var(--lime);
+    opacity: 0; max-height: 0; overflow: hidden; transition: 0.4s;
+  }
+  .done-banner.show { opacity: 1; max-height: 80px; padding: 16px; }
+  .tip { margin-top: 20px; font-size: 12px; line-height: 1.55; color: var(--txt-faint); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .tip b { color: var(--txt-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Hypertrophie · 6er Split</div>
+    <h1>Blue <span class="accent">Bro</span> Split</h1>
+    <div class="days" id="days"></div>
+  </header>
+
+  <div class="weekbar">
+    <button id="wPrev">‹</button>
+    <div style="text-align:center">
+      <div class="wlabel" id="wLabel">Woche</div>
+      <div class="wsub" id="wSub"></div>
+    </div>
+    <button id="wNext">›</button>
+  </div>
+
+  <div class="dayprog">
+    <div class="dayprog-top">
+      <div>
+        <div class="dayprog-title" id="dpTitle">Tag</div>
+        <div class="dayprog-focus" id="dpFocus"></div>
+      </div>
+      <div class="dayprog-count" id="dpCount">0/0</div>
+    </div>
+    <div class="pbar"><span id="dpBar"></span></div>
+  </div>
+
+  <div class="done-banner" id="banner">✓ Einheit komplett — saubere Arbeit. Nächster Tag wartet.</div>
+
+  <div id="content"></div>
+
+  <div class="foot">
+    <div class="streak">Diese Woche: <b id="weekCount">0</b>/6 Einheiten</div>
+    <button class="reset" id="resetBtn">Tag zurücksetzen</button>
+  </div>
+
+  <div class="tip" id="tipBox"></div>
+</div>
+
+<script>
+const SEC = {
+  skill: { label: 'Skill / Technik', cls: 'skill' },
+  power: { label: 'Kraft & Hypertrophie', cls: 'power' },
+  accessory: { label: 'Accessory & Core', cls: 'accessory' },
+};
+
+// weighted:true => shows weight logger with +/- ; step is the increment
+const PLAN = [
+  {
+    id:'d1', day:'Tag 1', name:'Push Day', focus:'Brust · Schultern · Trizeps',
+    tip:'Schwere Press-Übungen zuerst (6–10 Wdh), dann Isolation an Maschine & Kabel (8–12 Wdh). Die letzten Wdh jedes Satzes sollen hart sein. Progressiv steigern.',
+    ex:[
+      { s:'power', name:'Incline Machine Press', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2.5, note:'Obere Brust an der Maschine. Kontrolliert drücken, unten dehnen, oben nicht ganz durchstrecken für Dauerspannung.' },
+      { s:'power', name:'DB Shoulder Press', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2, note:'Kurzhantel-Schulterdrücken (sitzend). Vordere/seitliche Schulter. Rücken an der Bank, sauber über Kopf drücken.' },
+      { s:'power', name:'Machine Dips', scheme:'2–3 × 6–10', rest:'2 Min', weighted:true, step:2.5, note:'Trizeps & untere Brust an der Dip-Maschine. Voll durchdrücken unten, kontrolliert hoch.' },
+      { s:'accessory', name:'Pec Dec', scheme:'2–3 × 8–12', rest:'90 Sek', weighted:true, step:2.5, note:'Brust-Isolation. Langsame Exzentrik, in der Mitte kurz zusammendrücken. Ideal zum Ausbelasten.' },
+      { s:'accessory', name:'Cable Extension', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:2.5, note:'Trizeps am Kabel. Ellbogen fixiert am Körper, voll durchstrecken, kontrolliert zurück.' },
+      { s:'accessory', name:'Cable Lateral Raise', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:1, note:'Seitliche Schulter für breite Optik. Konstante Kabelspannung, sauber & ohne Schwung.' },
+    ]
+  },
+  {
+    id:'d2', day:'Tag 2', name:'Pull Day', focus:'Rücken · Bizeps',
+    tip:'Vertikaler & horizontaler Zug für Breite und Dicke, dann Bizeps-Isolation. Bei den Zugübungen bewusst den Rücken arbeiten lassen, nicht nur die Arme.',
+    ex:[
+      { s:'power', name:'Lat Pulldown', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2.5, note:'Latzug für Rückenbreite. Zur oberen Brust ziehen, Ellbogen nach unten-hinten, oben voll ausstrecken lassen.' },
+      { s:'power', name:'T-Bar Row', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2.5, note:'Rückendicke. Brust auf dem Pad oder vorgebeugt, zum Bauch ziehen, Schulterblätter zusammen.' },
+      { s:'power', name:'Close-Grip Row', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2.5, note:'Enges Rudern (Maschine/Kabel) für mittleren Rücken. Brust raus, zum Bauch ziehen, kurz halten.' },
+      { s:'accessory', name:'Reverse Pec Dec', scheme:'2–3 × 8–12', rest:'90 Sek', weighted:true, step:2.5, note:'Hintere Schulter. Wichtig für Haltung & volle Schulter-Optik. Sauber, kontrolliert, kein Schwung.' },
+      { s:'accessory', name:'Preacher Curl', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:2.5, note:'Bizeps an der Scott-Bank (Maschine/SZ). Isoliert den Bizeps stark. Langsam ablassen für maximalen Reiz.' },
+      { s:'accessory', name:'Cable Hammer Curl', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:2, note:'Bizeps & Unterarm (Brachialis) am Kabel mit Seil. Neutraler Griff, konstante Spannung.' },
+    ]
+  },
+  {
+    id:'d3', day:'Tag 3', name:'Leg Day & Abs', focus:'Beine · Waden · Bauch',
+    tip:'Schwere Quad-Übung zuerst, dann Isolation an Maschinen und Bauch zum Abschluss. Volle ROM bei allen Bein-Übungen für maximales Wachstum.',
+    ex:[
+      { s:'power', name:'Hack Squat', scheme:'2–3 × 6–10', rest:'3 Min', weighted:true, step:5, note:'Quads & Glutes an der Hackenschmidt-Maschine. Tief runter, aus den Fersen drücken, Knie oben nicht ganz strecken.' },
+      { s:'power', name:'Straight Leg Deadlift', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2.5, note:'Hamstrings & Glutes. Leichte Kniebeugung, Hüfte zurück, Stange nah am Bein, Dehnung spüren. Rücken gerade.' },
+      { s:'power', name:'Leg Extension', scheme:'2–3 × 6–10', rest:'2 Min', weighted:true, step:2.5, note:'Quadrizeps-Isolation. Oben kurz halten & anspannen, langsam ablassen. Gut zum Ausbelasten.' },
+      { s:'accessory', name:'Seated Leg Curl', scheme:'2–3 × 8–12', rest:'90 Sek', weighted:true, step:2.5, note:'Hamstring-Isolation. Kontrolliert einrollen, oben anspannen, langsam zurück.' },
+      { s:'accessory', name:'Standing Calf Raises', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:5, note:'Waden. Volle Dehnung unten, hoch auf die Zehen, oben 1 Sek halten.' },
+      { s:'accessory', name:'Cable Crunch', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:2.5, note:'Bauch am Kabel. Kniend, mit dem Bauch einrollen (nicht mit den Armen ziehen), unten anspannen.' },
+    ]
+  },
+  {
+    id:'d4', day:'Tag 4', name:'Chest & Back', focus:'Brust · Rücken',
+    tip:'Brust und Rücken im Wechsel (Antagonisten). Schwere Press- & Zugübungen zuerst, dann Maschinen und Kabel. Guter Pump durch das abwechselnde Training.',
+    ex:[
+      { s:'power', name:'Incline DB Press', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2, note:'Obere Brust mit Kurzhanteln für mehr ROM. Tiefe Dehnung unten, oben zusammendrücken.' },
+      { s:'power', name:'Weighted Pull-ups', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2.5, note:'Rückenbreite mit Zusatzgewicht am Gürtel. Voll ausstrecken unten, Brust zur Stange oben. Deine Calisthenics-Stärke.' },
+      { s:'power', name:'Machine Flat Press', scheme:'2–3 × 6–10', rest:'2 Min', weighted:true, step:2.5, note:'Mittlere Brust an der Maschine. Kontrolliert, konstante Spannung. Ergänzt das Kurzhanteldrücken.' },
+      { s:'power', name:'T-Bar Row', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2.5, note:'Rückendicke. Vorgebeugt oder auf dem Pad, zum Bauch ziehen, Schulterblätter zusammen.' },
+      { s:'accessory', name:'Pec Dec', scheme:'2–3 × 8–12', rest:'90 Sek', weighted:true, step:2.5, note:'Brust-Isolation. Langsame Exzentrik, in der Mitte kurz zusammendrücken.' },
+      { s:'accessory', name:'Cable Lat Pullover', scheme:'2–3 × 8–12', rest:'90 Sek', weighted:true, step:2.5, note:'Lat-Isolation. Gestreckte Arme, am Kabel nach unten ziehen, Dehnung oben spüren. Betont die Lat-Breite.' },
+    ]
+  },
+  {
+    id:'d5', day:'Tag 5', name:'Shoulders & Arms', focus:'Schultern · Bizeps · Trizeps',
+    tip:'Eigener Tag nur für Schultern und Arme, das bringt den Extra-Reiz für diese kleineren Muskeln. Schwer starten, dann viel Isolation für den Pump.',
+    ex:[
+      { s:'power', name:'Machine Shoulder Press', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2.5, note:'Schwere Schulter-Grundübung an der Maschine. Über Kopf drücken, kontrolliert, für runde volle Schultern.' },
+      { s:'power', name:'Weighted Dips', scheme:'2–3 × 6–10', rest:'2 Min', weighted:true, step:2.5, note:'Trizeps & Brust mit Zusatzgewicht am Gürtel. Aufrecht für Trizeps-Fokus. Deine Calisthenics-Stärke als Masse-Übung.' },
+      { s:'accessory', name:'Cable Curl', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:2.5, note:'Bizeps am Kabel für konstante Spannung. Ellbogen fixiert, kontrolliert hoch, langsam ablassen.' },
+      { s:'accessory', name:'Overhead Extension', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:2, note:'Langer Trizepskopf (über Kopf gedehnt) am Kabel. Ellbogen eng & hoch, voll durchstrecken.' },
+      { s:'accessory', name:'Cable Hammer Curl', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:2, note:'Bizeps & Unterarm am Kabel mit Seil. Neutraler Griff, konstante Spannung.' },
+      { s:'accessory', name:'Cable Lateral Raise', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:1, note:'Seitliche Schulter für Breite. Leicht & sauber, konstante Kabelspannung, ans Muskelversagen gehen.' },
+    ]
+  },
+  {
+    id:'d6', day:'Tag 6', name:'Leg Day', focus:'Beine · Adduktoren · Waden',
+    tip:'Zweiter Bein-Tag mit anderem Fokus: mehr Isolation und die Adduktoren, die an Tag 3 fehlten. Rundet das Bein-Volumen für die Woche ab.',
+    ex:[
+      { s:'power', name:'Hack Squat', scheme:'2–3 × 6–10', rest:'3 Min', weighted:true, step:5, note:'Quads & Glutes an der Maschine. Tief runter, aus den Fersen drücken. Kannst du gegenüber Tag 3 leicht variieren (Fußstellung).' },
+      { s:'power', name:'Straight Leg Deadlift', scheme:'2–3 × 6–10', rest:'2–3 Min', weighted:true, step:2.5, note:'Hamstrings & Glutes. Hüfte zurück, Stange nah am Bein, Dehnung spüren, Rücken gerade.' },
+      { s:'power', name:'Leg Extension', scheme:'2–3 × 6–10', rest:'2 Min', weighted:true, step:2.5, note:'Quadrizeps-Isolation. Oben anspannen & kurz halten, langsam ablassen.' },
+      { s:'accessory', name:'Seated Leg Curl', scheme:'2–3 × 8–12', rest:'90 Sek', weighted:true, step:2.5, note:'Hamstring-Isolation. Kontrolliert einrollen, oben anspannen.' },
+      { s:'accessory', name:'Adductor Machine', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:2.5, note:'Innenschenkel (Adduktoren). Beine langsam zusammenführen, kurz halten, kontrolliert öffnen. Oft vernachlässigt.' },
+      { s:'accessory', name:'Standing Calf Raises', scheme:'2–3 × 8–12', rest:'75 Sek', weighted:true, step:5, note:'Waden. Volle Dehnung unten, hoch auf die Zehen, oben 1 Sek halten.' },
+    ]
+  },
+];
+
+// ---- persistent storage ----
+// checks: { 'YYYY-Www::dayId' : Set(exIndex) }
+// weights: { 'dayId::exIndex' : { 'YYYY-Www': number } }
+const CHECK_KEY = 'calisthenics_checks_v2';
+const WEIGHT_KEY = 'calisthenics_weights_v2';
+let checks = loadChecks();
+let weights = loadWeights();
+
+function loadChecks(){ try { const r=localStorage.getItem(CHECK_KEY); if(!r) return {}; const p=JSON.parse(r); const o={}; for(const k in p) o[k]=new Set(p[k]); return o; } catch(e){ return {}; } }
+function saveChecks(){ try { const pl={}; for(const k in checks) pl[k]=Array.from(checks[k]); localStorage.setItem(CHECK_KEY, JSON.stringify(pl)); } catch(e){} }
+function loadWeights(){ try { const r=localStorage.getItem(WEIGHT_KEY); return r?JSON.parse(r):{}; } catch(e){ return {}; } }
+function saveWeights(){ try { localStorage.setItem(WEIGHT_KEY, JSON.stringify(weights)); } catch(e){} }
+
+// ---- ISO week helpers ----
+function isoWeek(d){
+  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const dayNum=(t.getUTCDay()+6)%7; t.setUTCDate(t.getUTCDate()-dayNum+3);
+  const firstThu=new Date(Date.UTC(t.getUTCFullYear(),0,4));
+  const week=1+Math.round(((t-firstThu)/86400000-3+((firstThu.getUTCDay()+6)%7))/7);
+  return { key: t.getUTCFullYear()+'-W'+String(week).padStart(2,'0'), year:t.getUTCFullYear(), week };
+}
+// week offset navigation (0 = current week, -1 = last week, etc.)
+let weekOffset = 0;
+function currentWeekKey(){ const d=new Date(); d.setDate(d.getDate()+weekOffset*7); return isoWeek(d); }
+
+let activeDay = 'd1';
+
+const daysEl=document.getElementById('days');
+const contentEl=document.getElementById('content');
+
+function checkSet(wk, dayId){ const k=wk+'::'+dayId; if(!checks[k]) checks[k]=new Set(); return checks[k]; }
+function weightFor(dayId, i, wk){ const k=dayId+'::'+i; return (weights[k] && weights[k][wk]!=null) ? weights[k][wk] : null; }
+function setWeight(dayId, i, wk, val){ const k=dayId+'::'+i; if(!weights[k]) weights[k]={}; if(val==null||val==='') delete weights[k][wk]; else weights[k][wk]=val; saveWeights(); }
+function prevWeekKey(wkObj){ const d=new Date(); d.setDate(d.getDate()+(weekOffset-1)*7); return isoWeek(d).key; }
+
+function buildDays(){
+  const wk=currentWeekKey().key;
+  daysEl.innerHTML='';
+  PLAN.forEach(d=>{
+    const s=checkSet(wk, d.id); const done=s.size; const total=d.ex.length; const full=done>=total;
+    const el=document.createElement('div');
+    el.className='day-tab'+(d.id===activeDay?' active':'');
+    el.innerHTML=`<div class="dt-day">${d.day}</div><div class="dt-name">${d.name}</div><div class="dt-check">${full?'✓ fertig':done+'/'+total}</div>`;
+    el.addEventListener('click',()=>{ activeDay=d.id; buildDays(); renderDay(); });
+    daysEl.appendChild(el);
+  });
+}
+
+function renderWeekBar(){
+  const c=currentWeekKey();
+  document.getElementById('wLabel').textContent = weekOffset===0 ? 'Diese Woche' : (weekOffset===-1 ? 'Letzte Woche' : 'KW '+c.week);
+  document.getElementById('wSub').textContent = 'KW '+c.week+' · '+c.year;
+  document.getElementById('wNext').style.opacity = weekOffset>=0 ? 0.3 : 1;
+}
+
+function renderDay(){
+  const wk=currentWeekKey().key;
+  const pwk=prevWeekKey();
+  const d=PLAN.find(x=>x.id===activeDay);
+  const s=checkSet(wk, d.id);
+  document.getElementById('dpTitle').textContent=d.day+' · '+d.name;
+  document.getElementById('dpFocus').textContent=d.focus;
+  document.getElementById('tipBox').innerHTML='<b>Fokus heute:</b> '+d.tip;
+
+  let html=''; let lastSec=null;
+  d.ex.forEach((e,i)=>{
+    if(e.s!==lastSec){ const m=SEC[e.s]; html+=`<div class="section-label ${m.cls}"><span class="dot"></span>${m.label}</div>`; lastSec=e.s; }
+    const done=s.has(i);
+    const w=weightFor(d.id,i,wk);
+    const pw=weightFor(d.id,i,pwk);
+    // header weight badge
+    let badge='';
+    if(e.weighted){
+      if(w!=null && w>0){ const up = (pw!=null && w>pw); badge=`<div class="ex-wt">${up?'<span class="up">▲ </span>':''}+${w} kg</div>`; }
+      else if(w===0){ badge=`<div class="ex-wt none">BW</div>`; }
+      else { badge=`<div class="ex-wt none">– kg</div>`; }
+    }
+    // weight logger block
+    let logger='';
+    if(e.weighted){
+      const val = (w!=null)? w : '';
+      // history rows (last up to 4 weeks that have data)
+      const k=d.id+'::'+i; const hist=weights[k]||{};
+      const entries=Object.keys(hist).sort();
+      let histHtml='';
+      if(entries.length){
+        const recent=entries.slice(-4);
+        histHtml='<div class="wlog-hist">'+recent.map(wkk=>{
+          const isCur=wkk===wk;
+          const label = wkk.replace('-W',' · KW ');
+          return `<div class="hrow${isCur?' cur':''}"><span>${label}</span><span class="hw">${hist[wkk]>0?'+'+hist[wkk]+' kg':'BW'}</span></div>`;
+        }).join('')+'</div>';
+      }
+      // delta vs previous week
+      let delta='';
+      if(w!=null && pw!=null){
+        const diff = +(w-pw).toFixed(1);
+        if(diff>0) delta=`<div class="wlog-delta up">▲ +${diff} kg vs. Vorwoche — progressive Überlastung ✓</div>`;
+        else if(diff===0) delta=`<div class="wlog-delta same">= gleich wie Vorwoche — nächste Woche steigern</div>`;
+        else delta=`<div class="wlog-delta down">▼ ${diff} kg vs. Vorwoche</div>`;
+      }
+      logger=`
+        <div class="wlog">
+          <div class="wlog-row">
+            <div class="wlog-label">Zusatzgewicht</div>
+            <div class="wlog-input">
+              <button data-act="dec" data-i="${i}" data-step="${e.step}">−</button>
+              <input type="number" inputmode="decimal" step="${e.step}" data-i="${i}" value="${val}" placeholder="0">
+              <button data-act="inc" data-i="${i}" data-step="${e.step}">+</button>
+              <span class="wlog-unit">kg</span>
+            </div>
+          </div>
+          ${delta}
+          ${histHtml}
+        </div>`;
+    }
+    html+=`
+      <div class="ex${done?' done':''}" data-i="${i}">
+        <div class="ex-head">
+          <div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ex-info">
+            <div class="ex-name">${e.name}</div>
+            <div class="ex-scheme"><b>${e.scheme}</b> &nbsp;·&nbsp; Pause ${e.rest}</div>
+          </div>
+          ${badge}
+          <div class="ex-expand">▸</div>
+        </div>
+        <div class="ex-body"><div class="ex-inner">
+          <div class="ex-note"><span class="tag">Ausführung</span><br>${e.note}</div>
+          ${logger}
+        </div></div>
+      </div>`;
+  });
+  contentEl.innerHTML=html;
+
+  contentEl.querySelectorAll('.ex').forEach(card=>{
+    const i=Number(card.dataset.i);
+    const check=card.querySelector('.check');
+    const expand=card.querySelector('.ex-expand');
+    const head=card.querySelector('.ex-head');
+    check.addEventListener('click',(ev)=>{ ev.stopPropagation(); toggleEx(i); });
+    head.addEventListener('click',()=> toggleEx(i));
+    expand.addEventListener('click',(ev)=>{ ev.stopPropagation(); card.classList.toggle('open'); });
+  });
+
+  // weight input handlers
+  contentEl.querySelectorAll('.wlog-input input').forEach(inp=>{
+    const i=Number(inp.dataset.i);
+    inp.addEventListener('click',(ev)=>ev.stopPropagation());
+    inp.addEventListener('change',()=>{
+      let v=inp.value===''?null:parseFloat(inp.value);
+      if(v!=null && (isNaN(v)||v<0)) v=0;
+      setWeight(d.id,i,wk,v);
+      renderDay();
+    });
+  });
+  contentEl.querySelectorAll('.wlog-input button').forEach(btn=>{
+    btn.addEventListener('click',(ev)=>{
+      ev.stopPropagation();
+      const i=Number(btn.dataset.i); const step=parseFloat(btn.dataset.step);
+      const cur=weightFor(d.id,i,wk); let base=(cur!=null)?cur:0;
+      base += (btn.dataset.act==='inc'? step : -step);
+      if(base<0) base=0;
+      base=+base.toFixed(2);
+      setWeight(d.id,i,wk,base);
+      renderDay();
+      // keep card open
+      const card=contentEl.querySelector(`.ex[data-i="${i}"]`); if(card) card.classList.add('open');
+    });
+  });
+
+  updateProgress();
+}
+
+function toggleEx(i){
+  const wk=currentWeekKey().key;
+  const s=checkSet(wk, activeDay);
+  if(s.has(i)) s.delete(i); else s.add(i);
+  saveChecks();
+  const card=contentEl.querySelector(`.ex[data-i="${i}"]`);
+  card.classList.toggle('done', s.has(i));
+  updateProgress(); buildDays();
+}
+
+function updateProgress(){
+  const wk=currentWeekKey().key;
+  const d=PLAN.find(x=>x.id===activeDay);
+  const s=checkSet(wk, d.id); const done=s.size; const total=d.ex.length;
+  document.getElementById('dpCount').textContent=done+'/'+total;
+  requestAnimationFrame(()=> document.getElementById('dpBar').style.width=(done/total*100)+'%');
+  document.getElementById('banner').classList.toggle('show', done>=total);
+  let wc=0; PLAN.forEach(x=>{ const ss=checks[wk+'::'+x.id]; if(ss && ss.size>=x.ex.length) wc++; });
+  document.getElementById('weekCount').textContent=wc;
+}
+
+document.getElementById('wPrev').addEventListener('click',()=>{ weekOffset--; renderWeekBar(); buildDays(); renderDay(); });
+document.getElementById('wNext').addEventListener('click',()=>{ if(weekOffset<0){ weekOffset++; renderWeekBar(); buildDays(); renderDay(); } });
+document.getElementById('resetBtn').addEventListener('click',()=>{ const wk=currentWeekKey().key; checkSet(wk,activeDay).clear(); saveChecks(); renderDay(); buildDays(); });
+
+renderWeekBar();
+buildDays();
+renderDay();
+</script>
+</body>
+</html>
